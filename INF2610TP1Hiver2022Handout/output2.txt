@@ -1,0 +1,4 @@
+write(1, "75dbcb01f571f1c32e196c3a7d27f62e (printed using printf)", 55) = 55
+write(1, "75dbcb01f571f1c32e196c3a7d27f62e (printed using write)\n", 55) = 55
+write(1, "\n", 1)                       = 1
++++ exited with 0 +++
