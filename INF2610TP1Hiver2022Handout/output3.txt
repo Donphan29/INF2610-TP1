@@ -1,0 +1,30 @@
+443023 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7febe58faa10) = 443024
+443023 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD <unfinished ...>
+443024 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD <unfinished ...>
+443023 <... clone resumed>, child_tidptr=0x7febe58faa10) = 443025
+443024 <... clone resumed>, child_tidptr=0x7febe58faa10) = 443026
+443024 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD <unfinished ...>
+443023 +++ exited with 0 +++
+443025 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD <unfinished ...>
+443024 <... clone resumed>, child_tidptr=0x7febe58faa10) = 443027
+443026 +++ exited with 0 +++
+443024 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD <unfinished ...>
+443025 <... clone resumed>, child_tidptr=0x7febe58faa10) = 443028
+443024 <... clone resumed>, child_tidptr=0x7febe58faa10) = ? ERESTARTNOINTR (To be restarted)
+443025 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD <unfinished ...>
+443027 +++ exited with 0 +++
+443024 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=443026, si_uid=31205, si_status=0, si_utime=0, si_stime=0} ---
+443025 <... clone resumed>, child_tidptr=0x7febe58faa10) = 443029
+443025 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD <unfinished ...>
+443024 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=443027, si_uid=31205, si_status=0, si_utime=0, si_stime=0} ---
+443025 <... clone resumed>, child_tidptr=0x7febe58faa10) = 443030
+443028 +++ exited with 0 +++
+443025 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=443028, si_uid=31205, si_status=0, si_utime=0, si_stime=0} ---
+443029 +++ exited with 0 +++
+443025 +++ exited with 0 +++
+443030 +++ exited with 0 +++
+443024 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7febe58faa10) = 443031
+443024 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7febe58faa10) = 443032
+443031 +++ exited with 0 +++
+443024 +++ exited with 0 +++
+443032 +++ exited with 0 +++
