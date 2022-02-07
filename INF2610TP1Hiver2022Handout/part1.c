@@ -1,13 +1,12 @@
 /*
  * processlab - part1.c
  * 
- * École polytechnique de Montréal, Hiver 2022
- * Maxence Lefebvre, XXXX 
+ * École Polytechnique de Montréal, Hiver 2022
+ * Maxence Lefebvre, 2085581 
  * Huy-Don Phan, 2074318
  * Section de laboratoire : 02 (B2)
  * 
  */
-
 
 #include "./libprocesslab/libprocesslab.h"
 

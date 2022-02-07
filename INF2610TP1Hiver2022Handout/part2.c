@@ -1,17 +1,16 @@
 /*
  * processlab - part2.c
  * 
- * École polytechnique de Montréal, Hiver 2022
- * Maxence Lefebvre, XXX 
+ * École Polytechnique de Montréal, Hiver 2022
+ * Maxence Lefebvre, 2085581 
  * Huy-Don Phan, 2074318
  * Section de laboratoire : 02 (B2)
  * 
  */
 
-#include "libprocesslab/libprocesslab.h"
+#include "./libprocesslab/libprocesslab.h"
 
-void question2( )
-{
+void question2() {
     int nChilds = 0;
     int temp = 0;
     registerProc(0, 0, getpid(), getppid());
