@@ -1,3 +1,12 @@
+/*
+ * CommLab - TubesNommes.c
+ * 
+ * École Polytechnique de Montréal, Hiver 2022
+ * Maxence Lefebvre, 2085581 
+ * Huy-Don Phan, 2074318
+ * Section de laboratoire : 02 (B2)
+ * 
+ */
 #include <unistd.h> 
 #include <stdio.h> 
 #include <sys/wait.h> 
@@ -10,7 +19,7 @@ int main( ) {
     mkfifo("fd", 0660);
     mkfifo("fd2", 0660);
 
-    if (fork()==0) {
+    if (fork() == 0) {
         // premier fils
         int file = open("./In.txt", O_RDONLY);
         int fd = open("fd", O_WRONLY);
@@ -24,8 +33,8 @@ int main( ) {
         _exit(1);     
     }   
 
-    if (fork()==0) {
-        // second  fils   
+    if (fork() == 0) {
+        // second fils   
         int fd = open("fd", O_RDONLY); 
         int fd2 = open("fd2", O_WRONLY);    
 
@@ -39,7 +48,7 @@ int main( ) {
         _exit(1);     
     }
 
-    if (fork()==0) {
+    if (fork() == 0) {
         // troisième  fils    
         int fd2 = open("fd2", O_RDONLY);  
 
@@ -51,6 +60,6 @@ int main( ) {
         _exit(1);     
     }
 
-    while ((pid=wait(NULL)) > 0);    
+    while ((pid = wait(NULL)) > 0);    
     return 0;
 } 

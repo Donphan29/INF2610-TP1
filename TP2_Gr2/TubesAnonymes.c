@@ -1,3 +1,12 @@
+/*
+ * CommLab - TubesAnonymes.c
+ * 
+ * École Polytechnique de Montréal, Hiver 2022
+ * Maxence Lefebvre, 2085581 
+ * Huy-Don Phan, 2074318
+ * Section de laboratoire : 02 (B2)
+ * 
+ */
 #include <unistd.h> 
 #include <stdio.h> 
 #include <sys/wait.h> 
@@ -9,7 +18,7 @@ int main( ) {
     int fd[2]; pipe(fd);
     int fd2[2]; pipe(fd2);
 
-    if (fork()==0) {
+    if (fork() == 0) {
         // premier fils
         int file = open("./In.txt", O_RDONLY);
 
@@ -26,8 +35,8 @@ int main( ) {
         _exit(1);     
     }     
 
-    if (fork()==0) {
-        // second  fils            
+    if (fork() == 0) {
+        // second fils            
         dup2(fd[0],0);
         dup2(fd2[1],1);   
 
@@ -41,7 +50,7 @@ int main( ) {
         _exit(1);     
     }
 
-    if (fork()==0) {
+    if (fork() == 0) {
         // troisième  fils            
         dup2(fd2[0],0);  
 
@@ -60,6 +69,6 @@ int main( ) {
     close(fd2[0]); 
     close(fd2[1]); 
      
-    while ((pid=wait(NULL)) > 0);    
+    while ((pid = wait(NULL)) > 0);    
     return 0;
 } 
