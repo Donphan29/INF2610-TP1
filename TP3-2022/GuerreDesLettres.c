@@ -17,15 +17,14 @@
 #include <unistd.h>
 //...
 bool flag_de_fin = false;
+char* tampon = NULL;
 
 // fonction exécutée par les producteurs
 void* producteur(void* pid) {
    int* id = (int*) pid;
+
    while (1) {
-      printf("here\n");
-
-
-
+      printf("inprod\n");
       if (flag_de_fin) {
          printf("Producteur %d a produit ...\n", *id);
          break;
@@ -34,9 +33,18 @@ void* producteur(void* pid) {
    
    return NULL;
 }
+
 // fonction exécutée par les consommateurs
 void* consommateur(void *cid) {
-   printf("incons\n");
+   int* id = (int*) cid;
+
+   while(1) {
+      printf("incons\n");
+      if (flag_de_fin) {
+         printf("Consommateur %d a consommer ...\n", *id);
+         break;
+      }
+   }
    
    return NULL;
 }
@@ -52,8 +60,8 @@ int main(int argc, char* argv[]) {
       et la taille du tampon.*/
    int nbPartage = 0;
    int nbProducteurs = atoi(argv[1]);
-   int nbConsommateurs = nbConsommateurs;
-   char tampon[atoi(argv[3])];
+   int nbConsommateurs = atoi(argv[2]);
+   tampon = calloc(atoi(argv[3]), sizeof(char));
 
    sem_t* libre = calloc(1, sizeof(sem_t));
    sem_init(libre, nbPartage, nbProducteurs);
