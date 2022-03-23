@@ -22,16 +22,17 @@ char* tampon = NULL;
 // fonction exécutée par les producteurs
 void* producteur(void* pid) {
    int* id = (int*) pid;
-
+   int* produit = 0;
    while (1) {
-      printf("inprod\n");
+      printf("here\n");
+      produit++;
       if (flag_de_fin) {
-         printf("Producteur %d a produit ...\n", *id);
+         printf("Producteur %d a produit %d\n", *id);
          break;
       }
    }
    
-   return NULL;
+   return (void*) produit;
 }
 
 // fonction exécutée par les consommateurs
@@ -61,6 +62,7 @@ int main(int argc, char* argv[]) {
    int nbPartage = 0;
    int nbProducteurs = atoi(argv[1]);
    int nbConsommateurs = atoi(argv[2]);
+   int nblettrtotprod = 0;
    tampon = calloc(atoi(argv[3]), sizeof(char));
 
    sem_t* libre = calloc(1, sizeof(sem_t));
@@ -92,13 +94,21 @@ int main(int argc, char* argv[]) {
    alarm(1);
 
    for (int i = 0; i < nbProducteurs; i++) {
-      pthread_join(threadProd_id[i], NULL);
-      
+      void* produit;
+      pthread_join(threadProd_id[i], &produit);
+      nblettrtotprod += (int) produit;
    }
 
    for (int i = 0; i < nbConsommateurs; i++) {
       tampon[i] = 0;
    }
+
+   for (int i = 0; i < nbConsommateurs; i++) {
+      pthread_join(threadCons_id[i], NULL);
+
+   }
+
+   printf("%d\n", nblettrtotprod);
 
    return 0;
 }
