@@ -19,29 +19,67 @@
 bool flag_de_fin = false;
 char* tampon = NULL;
 
+int nbrLettresProd = 0;
+int nbrLettresCons = 0;
+
+sem_t* libre;
+sem_t* occupe; 
+sem_t* mutex;
+
 // fonction exécutée par les producteurs
 void* producteur(void* pid) {
    int* id = (int*) pid;
+   int nbr = 0;
+   srand(time(NULL));
 
    while (1) {
-      printf("inprod\n");
+      sem_wait(libre);
+      sem_wait(mutex);
+      char lettre = 'A' + rand() % 26;
+      for (int i = 0; i < sizeof(tampon); i++) {
+         if (tampon[i] == ' ') {
+            tampon[i] = lettre;
+            nbr++;
+            nbrLettresProd++;
+            break;
+         }
+      }
+      sem_post(mutex);
+      sem_post(libre);
       if (flag_de_fin) {
-         printf("Producteur %d a produit ...\n", *id);
+         printf("Producteur %d a produit %d lettres\n", *id, nbr);
          break;
       }
    }
-   
    return NULL;
 }
 
 // fonction exécutée par les consommateurs
 void* consommateur(void *cid) {
    int* id = (int*) cid;
+   int nbr = 0;
 
    while(1) {
-      printf("incons\n");
+      sem_wait(occupe);
+      sem_wait(mutex);
+      for (int i = 0; i < sizeof(tampon); i++) {
+         if (tampon[i] != ' ') {
+            tampon[i] = ' ';
+            nbr++;
+            nbrLettresCons++;
+            break;
+         }
+      }
+      sem_post(mutex);
+      sem_post(occupe);
+      // for (int i = 0; i < sizeof(tampon); i++) {
+      //    if (tampon[i] == 0) {
+      //       printf("Consommateur %d a consommer %d lettres\n", *id, nbr);
+      //       break;
+      //    }
+      // }
       if (flag_de_fin) {
-         printf("Consommateur %d a consommer ...\n", *id);
+         printf("Consommateur %d a consommé %d lettres\n", *id, nbr);
          break;
       }
    }
@@ -63,14 +101,18 @@ int main(int argc, char* argv[]) {
    int nbConsommateurs = atoi(argv[2]);
    tampon = calloc(atoi(argv[3]), sizeof(char));
 
-   sem_t* libre = calloc(1, sizeof(sem_t));
+   libre = calloc(1, sizeof(sem_t));
    sem_init(libre, nbPartage, nbProducteurs);
 
-   sem_t* occupe = calloc(1, sizeof(sem_t));
+   occupe = calloc(1, sizeof(sem_t));
    sem_init(occupe, nbPartage, nbConsommateurs);
 
-   sem_t* mutex = calloc(1, sizeof(sem_t));
+   mutex = calloc(1, sizeof(sem_t));
    sem_init(mutex, nbPartage, 1);
+
+   for (int i = 0; i < sizeof(tampon); i++) {
+      tampon[i] = ' ';
+   }
 
    pthread_t threadProd_id[nbProducteurs];
    pthread_t threadProd_args[nbProducteurs];
@@ -93,12 +135,15 @@ int main(int argc, char* argv[]) {
 
    for (int i = 0; i < nbProducteurs; i++) {
       pthread_join(threadProd_id[i], NULL);
-      
    }
 
    for (int i = 0; i < nbConsommateurs; i++) {
-      tampon[i] = 0;
+      // tampon[i] = 0;
+      pthread_join(threadCons_id[i], NULL);
    }
+
+   printf("==> Nombre total de lettres produites: %d\n", nbrLettresProd);
+   printf("==> Nombre total de lettres consommées: %d\n", nbrLettresCons);
 
    return 0;
 }
