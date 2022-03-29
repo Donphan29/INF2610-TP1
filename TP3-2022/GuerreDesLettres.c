@@ -15,61 +15,83 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <unistd.h>
-//...
-bool flag_de_fin = false;
+
+
+/* Variables globales */
+bool flagDeFin = false;
 char* tampon = NULL;
+int nLettresProduites = 0;
+int nLettresConsommees = 0;
 
-int nbrLettresProd = 0;
-int nbrLettresCons = 0;
 
+/* Sémaphore qui indique si le tampon est libre pour une production
+ * ou qui met en attente le producteur lorsque ce dernier est plein
+ */
 sem_t* libre;
-sem_t* occupe; 
+
+
+/* Sémaphore qui indique si le tampon est occupé pour une consommation
+ * ou qui met en attente le consommateur lorsque ce dernier est vide
+ */
+sem_t* occupe;
+
+
+/* Sémaphore qui asure l'accès exclusif aux variables partagées 
+ * comme le tampon, le nombre total de lettres poduites ou consommées
+ */
 sem_t* mutex;
 
-// fonction exécutée par les producteurs
+
+/* Fonction exécutée par les producteurs */
 void* producteur(void* pid) {
    int* id = (int*) pid;
-   int nbr = 0;
+   int nProductions = 0;
    srand(time(NULL));
 
    while (1) {
       sem_wait(libre);
       sem_wait(mutex);
       char lettre = 'A' + rand() % 26;
+
       for (int i = 0; i < sizeof(tampon); i++) {
-         if (tampon[i] == ' ') {
+         if (tampon[i] == 0) {
             tampon[i] = lettre;
-            nbr++;
-            nbrLettresProd++;
+            nProductions++;
+            nLettresProduites++;
             break;
          }
       }
+
       sem_post(mutex);
       sem_post(libre);
-      if (flag_de_fin) {
-         printf("Producteur %d a produit %d lettres\n", *id, nbr);
+
+      if (flagDeFin) {
+         printf("Producteur %d a produit %d lettres\n", *id, nProductions);
          break;
       }
    }
    return NULL;
 }
 
-// fonction exécutée par les consommateurs
+
+/* Fonction exécutée par les consommateurs */
 void* consommateur(void *cid) {
    int* id = (int*) cid;
-   int nbr = 0;
+   int nConsommations = 0;
 
    while(1) {
       sem_wait(occupe);
       sem_wait(mutex);
+
       for (int i = 0; i < sizeof(tampon); i++) {
-         if (tampon[i] != ' ') {
-            tampon[i] = ' ';
-            nbr++;
-            nbrLettresCons++;
+         if (tampon[i] != 0) {
+            tampon[i] = 0;
+            nConsommations++;
+            nLettresConsommees++;
             break;
          }
       }
+
       sem_post(mutex);
       sem_post(occupe);
       // for (int i = 0; i < sizeof(tampon); i++) {
@@ -78,72 +100,88 @@ void* consommateur(void *cid) {
       //       break;
       //    }
       // }
-      if (flag_de_fin) {
-         printf("Consommateur %d a consommé %d lettres\n", *id, nbr);
+
+      if (flagDeFin) {
+         printf("Consommateur %d a consommé %d lettres\n", *id, nConsommations);
          break;
       }
    }
-   
    return NULL;
 }
 
+
+/* Fonction qui inverse la valeur du flag de fin après un SIGALRM */
 void* signalHandler() {
-   flag_de_fin = !flag_de_fin;
+   flagDeFin = !flagDeFin;
 }
 
-// fonction main
+
+/* Fonction main */
 int main(int argc, char* argv[]) {
-   /* Les paramètres du programme sont, dans l’ordre :
-      le nombre de producteurs, le nombre de consommateurs
-      et la taille du tampon.*/
-   int nbPartage = 0;
-   int nbProducteurs = atoi(argv[1]);
-   int nbConsommateurs = atoi(argv[2]);
+
+
+   /* Variables locales du main*/
+   int nPartage = 0;
+   int nProducteurs = atoi(argv[1]);
+   int nConsommateurs = atoi(argv[2]);
    tampon = calloc(atoi(argv[3]), sizeof(char));
 
+
+   /* Initialisation des sémaphores */
    libre = calloc(1, sizeof(sem_t));
-   sem_init(libre, nbPartage, nbProducteurs);
+   sem_init(libre, nPartage, nProducteurs);
 
    occupe = calloc(1, sizeof(sem_t));
-   sem_init(occupe, nbPartage, nbConsommateurs);
+   sem_init(occupe, nPartage, nConsommateurs);
 
    mutex = calloc(1, sizeof(sem_t));
-   sem_init(mutex, nbPartage, 1);
+   sem_init(mutex, nPartage, 1);
 
-   for (int i = 0; i < sizeof(tampon); i++) {
-      tampon[i] = ' ';
+
+   /* Initialisation des id et des arguments des threads producteurs et consommateurs */
+   pthread_t idThreadsProducteur[nProducteurs];
+   pthread_t argsThreadsProducteur[nProducteurs];
+
+   pthread_t idThreadsConsommateur[nConsommateurs];
+   pthread_t argsThreadsConsommateurs[nConsommateurs];
+
+
+   /* Création des threads producteurs et consommateurs */
+   for (int i = 0; i < nProducteurs; i++) {
+      argsThreadsProducteur[i] = i;
+      pthread_create(&idThreadsProducteur[i], NULL, producteur, (void*) &argsThreadsProducteur[i]);
    }
 
-   pthread_t threadProd_id[nbProducteurs];
-   pthread_t threadProd_args[nbProducteurs];
-
-   pthread_t threadCons_id[nbConsommateurs];
-   pthread_t threadCons_args[nbConsommateurs];
-
-   for (int i = 0; i < nbProducteurs; i++) {
-      threadProd_args[i] = i;
-      pthread_create(&threadProd_id[i], NULL, producteur, (void*) &threadProd_args[i]);
+   for (int i = 0; i < nConsommateurs; i++) {
+      argsThreadsConsommateurs[i] = i;
+      pthread_create(&idThreadsConsommateur[i], NULL, consommateur, (void*) &argsThreadsConsommateurs[i]);
    }
 
-   for (int i = 0; i < nbConsommateurs; i++) {
-      threadCons_args[i] = i;
-      pthread_create(&threadCons_id[i], NULL, consommateur, (void*) &threadCons_args[i]);
-   }
 
+   /* Lancement d'une alarme d'une seconde */
    signal(SIGALRM, (void*) signalHandler);
    alarm(1);
 
-   for (int i = 0; i < nbProducteurs; i++) {
-      pthread_join(threadProd_id[i], NULL);
+
+   /* Mise en attente des threads producteurs */
+   for (int i = 0; i < nProducteurs; i++) {
+      pthread_join(idThreadsProducteur[i], NULL);
    }
 
-   for (int i = 0; i < nbConsommateurs; i++) {
-      // tampon[i] = 0;
-      pthread_join(threadCons_id[i], NULL);
+   // for (int i = 0; i < nConsommateurs; i++) {
+   //    if (tampon[i] != 0)
+   //       tampon[i] = 0;
+   // }
+
+   /* Mise en attente des threads consommateurs */
+   for (int i = 0; i < nConsommateurs; i++) {
+      pthread_join(idThreadsConsommateur[i], NULL);
    }
 
-   printf("==> Nombre total de lettres produites: %d\n", nbrLettresProd);
-   printf("==> Nombre total de lettres consommées: %d\n", nbrLettresCons);
+
+   /* Affichage des lettres totales produites et consommées */
+   printf("--> Nombre total de lettres produites: %d\n", nLettresProduites);
+   printf("--> Nombre total de lettres consommées: %d\n", nLettresConsommees);
 
    return 0;
 }
