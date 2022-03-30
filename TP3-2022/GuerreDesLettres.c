@@ -17,29 +17,24 @@
 #include <unistd.h>
 #include <string.h>
 
-
 /* Variables globales */
 bool flagDeFin = false;
 char* tampon = NULL;
-
 
 /* Sémaphore qui indique si le tampon est libre pour une production
  * ou qui met en attente le producteur lorsque ce dernier est plein
  */
 sem_t* libre;
 
-
 /* Sémaphore qui indique si le tampon est occupé pour une consommation
  * ou qui met en attente le consommateur lorsque ce dernier est vide
  */
 sem_t* occupe;
 
-
 /* Sémaphore qui asure l'accès exclusif aux variables partagées 
  * comme le tampon, le nombre total de lettres poduites ou consommées
  */
 sem_t* mutex;
-
 
 /* Fonction exécutée par les producteurs */
 void* producteur(void* pid) {
@@ -72,7 +67,6 @@ void* producteur(void* pid) {
    *res = nProductions;
    return (void*) res;
 }
-
 
 /* Fonction exécutée par les consommateurs */
 void* consommateur(void *cid) {
@@ -108,18 +102,13 @@ void* consommateur(void *cid) {
    return (void*) res;
 }
 
-
 /* Fonction qui inverse la valeur du flag de fin après un SIGALRM */
 void* signalHandler() {
    flagDeFin = !flagDeFin;
 }
 
-
 /* Fonction main */
 int main(int argc, char* argv[]) {
-   /* Les paramètres du programme sont, dans l’ordre :
-      le nombre de producteurs, le nombre de consommateurs
-      et la taille du tampon.*/
    int nPartage = 0;
    int nProducteurs = atoi(argv[1]);
    int nConsommateurs = atoi(argv[2]);
@@ -140,14 +129,12 @@ int main(int argc, char* argv[]) {
    mutex = calloc(1, sizeof(sem_t));
    sem_init(mutex, nPartage, 1);
 
-
    /* Initialisation des id et des arguments des threads producteurs et consommateurs */
    pthread_t idThreadsProducteur[nProducteurs];
    pthread_t argsThreadsProducteur[nProducteurs];
 
    pthread_t idThreadsConsommateur[nConsommateurs];
    pthread_t argsThreadsConsommateurs[nConsommateurs];
-
 
    /* Création des threads producteurs et consommateurs */
    for (int i = 0; i < nProducteurs; i++) {
@@ -160,7 +147,6 @@ int main(int argc, char* argv[]) {
       pthread_create(&idThreadsConsommateur[i], NULL, consommateur, (void*) &argsThreadsConsommateurs[i]);
    }
 
-
    /* Lancement d'une alarme d'une seconde */
    signal(SIGALRM, (void*) signalHandler);
    alarm(1);
@@ -172,13 +158,12 @@ int main(int argc, char* argv[]) {
       nLettresProduites += *produit;
    }
 
-   /* Ajout de ) pour arreter les threads consommateurs*/
+   /* Ajout de 0 pour arreter les threads consommateurs*/
    for (int i = 0; i < nConsommateurs; i++) {
       if (tampon[i] == 1)
          tampon[i] = 0;
       else
          i--;
-      
    }
 
    /* Mise en attente des threads consommateurs */
@@ -187,7 +172,6 @@ int main(int argc, char* argv[]) {
       pthread_join(idThreadsConsommateur[i], (void**) &cons);
       nLettresConsommees += *cons;
    }
-
 
    /* Affichage des lettres totales produites et consommées */
    printf("--> Nombre total de lettres produites: %d\n", nLettresProduites);
