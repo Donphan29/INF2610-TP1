@@ -77,17 +77,17 @@ void* consommateur(void *cid) {
       sem_wait(&occupe);
       sem_wait(&mutex);
 
-      tampon[ic] = ' ';
-      ic = (ic + 1) % tailleTampon;
-      nConsommations++;
-      nLettresConsommees++;
-
       if (tampon[ic] == 0) {
          printf("Consommateur %d a consommé %d lettres\n", *id, nConsommations);
          sem_post(&mutex);
          sem_post(&libre);
          break;
       };
+
+      tampon[ic] = ' ';
+      ic = (ic + 1) % tailleTampon;
+      nConsommations++;
+      nLettresConsommees++;
 
       sem_post(&mutex);
       sem_post(&libre);
