@@ -62,7 +62,7 @@ void* producteur(void* pid) {
 
       if (flagDeFin) {
          printf("Producteur %d a produit %d lettres\n", *id, nProductions);
-         break;
+         pthread_exit(NULL);
       }
    }
    pthread_exit(NULL);
@@ -78,10 +78,11 @@ void* consommateur(void *cid) {
       sem_wait(&mutex);
 
       if (tampon[ic] == 0) {
+         ic = (ic + 1) % tailleTampon;
          printf("Consommateur %d a consommé %d lettres\n", *id, nConsommations);
          sem_post(&mutex);
          sem_post(&libre);
-         break;
+         pthread_exit(NULL);
       };
 
       tampon[ic] = ' ';
@@ -142,8 +143,7 @@ int main(int argc, char* argv[]) {
 
    /* Ajout des 0 dans le tampon */
    int tempIc = ic;
-   for (int i = 0; i < nConsommateurs; (tempIc + 1) % tailleTampon) {
-      printf("ici\n");
+   for (int i = 0; i < nConsommateurs; tempIc = (tempIc + 1) % tailleTampon, i++) {
       sem_wait(&libre);
       sem_wait(&mutex);
       tampon[tempIc] = 0;
@@ -157,8 +157,8 @@ int main(int argc, char* argv[]) {
    }
 
    /* Affichage des lettres totales produites et consommées */
-   printf("--> Nombre total de lettres produites: %d\n", nLettresProduites);
-   printf("--> Nombre total de lettres consommées: %d\n", nLettresConsommees);
+   printf("Nombre total de lettres produites: %d\n", nLettresProduites);
+   printf("Nombre total de lettres consommées: %d\n", nLettresConsommees);
 
    return 0;
 }
