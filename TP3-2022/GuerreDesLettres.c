@@ -26,24 +26,20 @@ int ip = 0;
 int ic = 0;
 int tailleTampon;
 
-
 /* Sémaphore qui indique si le tampon est libre pour une production
  * ou qui met en attente le producteur lorsque ce dernier est plein
  */
-sem_t* libre;
-
+sem_t libre;
 
 /* Sémaphore qui indique si le tampon est occupé pour une consommation
  * ou qui met en attente le consommateur lorsque ce dernier est vide
  */
-sem_t* occupe;
-
+sem_t occupe;
 
 /* Sémaphore qui asure l'accès exclusif aux variables partagées 
- * comme le tampon, le nombre total de lettres poduites ou consommées
+ * comme le tampon, ip et ic
  */
-sem_t* mutex;
-
+sem_t mutex;
 
 /* Fonction exécutée par les producteurs */
 void* producteur(void* pid) {
@@ -52,8 +48,8 @@ void* producteur(void* pid) {
    srand(time(NULL));
 
    while (1) {
-      sem_wait(libre);
-      sem_wait(mutex);
+      sem_wait(&libre);
+      sem_wait(&mutex);
       char lettre = 'A' + rand() % 26;
 
       tampon[ip] = lettre;
@@ -61,17 +57,16 @@ void* producteur(void* pid) {
       nProductions++;
       nLettresProduites++;
 
-      sem_post(mutex);
-      sem_post(occupe);
+      sem_post(&mutex);
+      sem_post(&occupe);
 
       if (flagDeFin) {
          printf("Producteur %d a produit %d lettres\n", *id, nProductions);
          break;
       }
    }
-   pthread_exit(0);
+   pthread_exit(NULL);
 }
-
 
 /* Fonction exécutée par les consommateurs */
 void* consommateur(void *cid) {
@@ -79,8 +74,8 @@ void* consommateur(void *cid) {
    int nConsommations = 0;
 
    while(1) {
-      sem_wait(occupe);
-      sem_wait(mutex);
+      sem_wait(&occupe);
+      sem_wait(&mutex);
 
       tampon[ic] = ' ';
       ic = (ic + 1) % tailleTampon;
@@ -89,24 +84,21 @@ void* consommateur(void *cid) {
 
       if (tampon[ic] == 0) {
          printf("Consommateur %d a consommé %d lettres\n", *id, nConsommations);
-         sem_post(mutex);
-         sem_post(libre);
-         pthread_exit(0);
+         sem_post(&mutex);
+         sem_post(&libre);
+         break;
       };
 
-      sem_post(mutex);
-      sem_post(libre);
+      sem_post(&mutex);
+      sem_post(&libre);
    }
-
-   return NULL;
+   pthread_exit(NULL);
 }
-
 
 /* Fonction qui inverse la valeur du flag de fin après un SIGALRM */
 void* signalHandler() {
    flagDeFin = !flagDeFin;
 }
-
 
 /* Fonction main */
 int main(int argc, char* argv[]) {
@@ -116,17 +108,10 @@ int main(int argc, char* argv[]) {
    tailleTampon = atoi(argv[3]);
    tampon = calloc(tailleTampon, sizeof(char));
 
-
    /* Initialisation des sémaphores */
-   libre = calloc(1, sizeof(sem_t));
-   sem_init(libre, nPartage, nProducteurs);
-
-   occupe = calloc(1, sizeof(sem_t));
-   sem_init(occupe, nPartage, nConsommateurs);
-
-   mutex = calloc(1, sizeof(sem_t));
-   sem_init(mutex, nPartage, 1);
-
+   sem_init(&libre, nPartage, tailleTampon);
+   sem_init(&occupe, nPartage, 0);
+   sem_init(&mutex, nPartage, 1);
 
    /* Initialisation des id et des arguments des threads producteurs et consommateurs */
    pthread_t idThreadsProducteur[nProducteurs];
@@ -134,7 +119,6 @@ int main(int argc, char* argv[]) {
 
    pthread_t idThreadsConsommateur[nConsommateurs];
    pthread_t argsThreadsConsommateurs[nConsommateurs];
-
 
    /* Création des threads producteurs et consommateurs */
    for (int i = 0; i < nProducteurs; i++) {
@@ -147,34 +131,30 @@ int main(int argc, char* argv[]) {
       pthread_create(&idThreadsConsommateur[i], NULL, consommateur, (void*) &argsThreadsConsommateurs[i]);
    }
 
-
    /* Lancement d'une alarme d'une seconde */
    signal(SIGALRM, (void*) signalHandler);
    alarm(1);
-
 
    /* Mise en attente des threads producteurs */
    for (int i = 0; i < nProducteurs; i++) {
       pthread_join(idThreadsProducteur[i], NULL);
    }
 
-
-   /* Dépose des 0 dans le tampon */
+   /* Ajout des 0 dans le tampon */
    int tempIc = ic;
    for (int i = 0; i < nConsommateurs; (tempIc + 1) % tailleTampon) {
-      sem_wait(libre);
-      sem_wait(mutex);
+      printf("ici\n");
+      sem_wait(&libre);
+      sem_wait(&mutex);
       tampon[tempIc] = 0;
-      sem_post(mutex);
-      sem_post(occupe);
+      sem_post(&mutex);
+      sem_post(&occupe);
    }
-
 
    /* Mise en attente des threads consommateurs */
    for (int i = 0; i < nConsommateurs; i++) {
       pthread_join(idThreadsConsommateur[i], NULL);
    }
-
 
    /* Affichage des lettres totales produites et consommées */
    printf("--> Nombre total de lettres produites: %d\n", nLettresProduites);
