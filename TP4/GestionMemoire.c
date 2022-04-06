@@ -50,17 +50,43 @@ void ajouterDansMemoire(struct RequeteMemoire* req, struct SystemeMemoire* mem) 
 	int numeroDePage = calculerNumeroDePage(req->adresseVirtuelle);
 	for (int i = 0; i < TAILLE_MEMOIRE; i++) {
 		if (mem->memoire->utilisee[i] == 0) {
-			req->adressePhysique = calculerAdresseComplete(mem->tlb->numeroCadre[i], calculerDeplacementDansLaPage(req->adresseVirtuelle));
 			mem->memoire->numeroPage[i] = numeroDePage;
+			req->adressePhysique = calculerAdresseComplete(i, calculerDeplacementDansLaPage(req->adresseVirtuelle));
 			mem->memoire->dateCreation[i] = req->date;
 			mem->memoire->dernierAcces[i] = req->date;
 			mem->memoire->utilisee[i] = 1;
+			break;
 		}
 	}
 }
 
 void mettreAJourTLB(struct RequeteMemoire* req, struct SystemeMemoire* mem) {
-	// TODO
+	int index = 0;
+	int plein = 0;
+	int premierElement = mem->tlb->dateCreation[index];
+
+	for (int i =0; i < TAILLE_TLB; i++) {
+		if (!mem->tlb->entreeValide[i]) {
+			index = i;  
+			break;
+		}
+
+		if(i == TAILLE_TLB - 1 & !plein){
+			plein = 1; 
+			i = 0;
+		}
+
+		if (mem->tlb->dateCreation[i] < premierElement & plein) {
+			index = i;
+			premierElement = mem->tlb->dateCreation[i];
+		}
+	}
+
+	mem->tlb->numeroPage[index] = calculerNumeroDePage(req->adresseVirtuelle);
+	mem->tlb->numeroCadre[index] = (req->adressePhysique - calculerDeplacementDansLaPage(req->adresseVirtuelle)) / TAILLE_PAGE_CADRE;
+	mem->tlb->dateCreation[index] = req->date;
+	mem->tlb->dernierAcces[index] = req->date;
+	mem->tlb->entreeValide[index] = 1;
 }
 
 // NE PAS MODIFIER
