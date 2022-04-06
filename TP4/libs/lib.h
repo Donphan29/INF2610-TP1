@@ -8,6 +8,7 @@
 #define TAILLE_TLB 32
 #define TAILLE_TP 128
 #define TAILLE_MEMOIRE 256
+#define TAILLE_PAGE_CADRE 1024
 
 struct RequeteMemoire {
 	u_int8_t estDansTLB;
