@@ -115,7 +115,7 @@ void ajouterDansMemoire(struct RequeteMemoire* req, struct SystemeMemoire* mem) 
  * 
  * Si le TLB est plein, une page est remplacée par celle précisée dans la requête
  * selon la politique FIFO. Sinon, celle-ci sera ajoutée dans le premier cadre
- * libre. Les autres paramres de la mémoire sont mis à jour.
+ * libre. Les autres paramètres de la mémoire sont mis à jour.
  * 
  * @param requête et mémoire
  */
